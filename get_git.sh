@@ -14,7 +14,7 @@ ALL_REPOS=0;
 handleProject() {
   echo "########## $(date +%s%N | cut -b1-13) Starting with" $P
   ALL_REPOS=$(($ALL_REPOS + 1))
-
+  pushd Mirrors &> /dev/null
   if [ -z $S ]
    then
      git clone --mirror $HOST/$O/$P.git &> /dev/null
@@ -24,7 +24,8 @@ handleProject() {
  pushd $P.git &> /dev/null
  git remote update &> /dev/null
  popd &> /dev/null
- git clone $P.git Projects/$P-working-dir &> /dev/null
+ popd &> /dev/null
+ git clone Mirrors/$P.git Projects/$P-working-dir &> /dev/null
  pushd Projects/$P-working-dir &> /dev/null
  commit=$(git log --pretty=format:'%h' -n 1)
  git pull &> /dev/null
@@ -43,7 +44,6 @@ handleProject() {
 
 mkdir -p Mirrors
 mkdir -p Projects
-cd Mirrors
 
 echo "----------> Starting Git backup @ $TIME <----------"
 
@@ -53,8 +53,6 @@ for path_with_namespace in "${projects[@]}"
     clean=$(sed -e "s/\"$PREFIX\":/""/g" <<< "$path_with_namespace")
     while IFS=/ read -r org proj
     do
-      # O=$(sed -e "s/\"$PREFIX\":/""/g" <<< "$path_with_namespace")
-      # O=$(sed -e "s/\"/""/g" <<< $org)
       P=$(sed -e "s/\"/""/g" <<< $proj)
   	  if [[ $P == *\/* ]]
          then
